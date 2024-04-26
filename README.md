@@ -5,4 +5,5 @@ This a test to learn how in the past they made games, spoiler alert it was in as
 
 ## How to compile .nes
 If you want to use my code and change things to compile the .nes just use the assemble.sh file to create it!
+
 NOTE: It only works on Linux if you are using Windows you'll have to do it manual
