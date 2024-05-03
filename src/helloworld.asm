@@ -47,7 +47,7 @@
 
   ; write player ship tile attributes
   ; use palette 0
-  LDA #$00
+  LDA #$03
   STA $0202
   STA $0206
   STA $020A
@@ -146,32 +146,12 @@ exit_subroutine:
 .proc main
 
   LDX PPUSTATUS
-  LDX #$20
+  LDX #$3f
   STX PPUADDR
   LDX #$00
   STX PPUADDR
 
   LDX #$00
-  LDY #$00
-
-OutsideLoopBackground:
-
-LoadBackgroundLoop:
-  LDA #.HIBYTE(test_nametable)
-  STA pointerLo
-  LDA #.LOBYTE(test_nametable)
-  STA pointerHi
-  
-  LDA (pointerLo), y
-
-  INY
-  CPY #$00
-  BNE LoadBackgroundLoop
-
-  INX
-  CPX #$04
-  BNE OutsideLoopBackground
-
 load_palettes:
   LDA palettes,X
   STA PPUDATA
@@ -179,7 +159,34 @@ load_palettes:
   CPX #$20
   BNE load_palettes
 
+load_background:
+  LDX PPUSTATUS
+  LDX #$20
+  STX PPUADDR
   LDX #$00
+  STX PPUADDR
+
+  LDA #<background
+  STA pointerLo
+  LDA #>background
+  STA pointerHi
+
+  LDX #$00
+  LDY #$00
+
+outsideloop:
+
+insideloop:
+  LDA (pointerLo), y
+  STA PPUDATA
+  INY
+  BNE insideloop
+
+  INC pointerHi
+
+  INX
+  CPX #$04
+  BNE outsideloop
 
 vblankwait: ; wait for another vblank before continuing
   BIT PPUSTATUS 
@@ -198,20 +205,11 @@ player_x: .res 1
 player_y: .res 1
 player_dir: .res 1
 .exportzp player_x, player_y
-pointerLo: .res 1 ; pointer variables are declared in RAM
-pointerHi: .res 1 ; low byte first, high byte immediately after
+pointerLo: .res 1
+pointerHi: .res 1
 
 .segment "RODATA"
-palettes:
-  .byte $0f, $12, $23, $27
-  .byte $0f, $2b, $3c, $39
-  .byte $0f, $0c, $07, $13
-  .byte $0f, $19, $09, $29
-
-  .byte $0f, $2d, $10, $15
-  .byte $0f, $19, $09, $29
-  .byte $0f, $19, $09, $29
-  .byte $0f, $19, $09, $29
+palettes: .incbin "background.pal"
 
 sprite:
   .byte $70, $05, $00, $80
@@ -219,8 +217,7 @@ sprite:
   .byte $78, $07, $00, $80
   .byte $78, $08, $00, $88
 
-test_nametable: 
-  .incbin "background.nam"
+background: .incbin "background.nam"
 
 .segment "VECTORS"
 .addr nmi_handler, reset_handler, irq_handler
