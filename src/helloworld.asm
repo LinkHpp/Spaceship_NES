@@ -146,12 +146,32 @@ exit_subroutine:
 .proc main
 
   LDX PPUSTATUS
-  LDX #$3f
+  LDX #$20
   STX PPUADDR
   LDX #$00
   STX PPUADDR
 
   LDX #$00
+  LDY #$00
+
+OutsideLoopBackground:
+
+LoadBackgroundLoop:
+  LDA #.HIBYTE(test_nametable)
+  STA pointerLo
+  LDA #.LOBYTE(test_nametable)
+  STA pointerHi
+  
+  LDA (pointerLo), y
+
+  INY
+  CPY #$00
+  BNE LoadBackgroundLoop
+
+  INX
+  CPX #$04
+  BNE OutsideLoopBackground
+
 load_palettes:
   LDA palettes,X
   STA PPUDATA
@@ -160,223 +180,6 @@ load_palettes:
   BNE load_palettes
 
   LDX #$00
-
-  ; write a nametable
-  ; Big Stars
-
-  LDA PPUSTATUS
-  LDA #$21
-  STA PPUADDR
-  LDA #$72
-  STA PPUADDR
-  LDX #$2F
-  STX PPUDATA
-
-  LDA PPUSTATUS
-  LDA #$20
-  STA PPUADDR
-  LDA #$68
-  STA PPUADDR
-  LDX #$2F
-  STX PPUDATA
-
-  LDA PPUSTATUS
-  LDA #$20
-  STA PPUADDR
-  LDA #$74
-  STA PPUADDR
-  LDX #$2F
-  STX PPUDATA
-
-  LDA PPUSTATUS
-  LDA #$21
-  STA PPUADDR
-  LDA #$5A
-  STA PPUADDR
-  LDX #$2F
-  STX PPUDATA
-
-  LDA PPUSTATUS
-  LDA #$21
-  STA PPUADDR
-  LDA #$CB
-  STA PPUADDR
-  LDX #$2F
-  STX PPUDATA
-
-  LDA PPUSTATUS
-  LDA #$21
-  STA PPUADDR
-  LDA #$64
-  STA PPUADDR
-  LDX #$2F
-  STX PPUDATA
-
-  LDA PPUSTATUS
-  LDA #$22
-  STA PPUADDR
-  LDA #$C7
-  STA PPUADDR
-  LDX #$2F
-  STX PPUDATA
-
-  LDA PPUSTATUS
-  LDA #$22
-  STA PPUADDR
-  LDA #$55
-  STA PPUADDR
-  LDX #$2F
-  STX PPUDATA
-
-  LDA PPUSTATUS
-  LDA #$22
-  STA PPUADDR
-  LDA #$B9
-  STA PPUADDR
-  LDX #$2F
-  STX PPUDATA
-
-  LDA PPUSTATUS
-  LDA #$23
-  STA PPUADDR
-  LDA #$6D
-  STA PPUADDR
-  LDX #$2F
-  STX PPUDATA
-
-  ; write a nametable
-  ; Medium Stars
-
-  LDA PPUSTATUS
-  LDA #$20
-  STA PPUADDR
-  LDA #$64
-  STA PPUADDR
-  LDX #$2D
-  STX PPUDATA
-  
-  LDA PPUSTATUS
-  LDA #$20
-  STA PPUADDR
-  LDA #$4F
-  STA PPUADDR
-  LDX #$2D
-  STX PPUDATA
-  
-  LDA PPUSTATUS
-  LDA #$20
-  STA PPUADDR
-  LDA #$B9
-  STA PPUADDR
-  LDX #$2D
-  STX PPUDATA
-
-  LDA PPUSTATUS
-  LDA #$20
-  STA PPUADDR
-  LDA #$DD
-  STA PPUADDR
-  LDX #$2D
-  STX PPUDATA
-
-  LDA PPUSTATUS
-  LDA #$21
-  STA PPUADDR
-  LDA #$4D
-  STA PPUADDR
-  LDX #$2D
-  STX PPUDATA
-
-  LDA PPUSTATUS
-  LDA #$20
-  STA PPUADDR
-  LDA #$D1
-  STA PPUADDR
-  LDX #$2D
-  STX PPUDATA
-
-  ; write a nametable
-  ; Small Stars
-  LDA PPUSTATUS
-  LDA #$20
-  STA PPUADDR
-  LDA #$3A
-  STA PPUADDR
-  LDX #$2E
-  STX PPUDATA
-
-  LDA PPUSTATUS
-  LDA #$20
-  STA PPUADDR
-  LDA #$B9
-  STA PPUADDR
-  LDX #$2E
-  STX PPUDATA
-
-  LDA PPUSTATUS
-  LDA #$21
-  STA PPUADDR
-  LDA #$4D
-  STA PPUADDR
-  LDX #$2E
-  STX PPUDATA
-
-  LDA PPUSTATUS
-  LDA #$21
-  STA PPUADDR
-  LDA #$4D
-  STA PPUADDR
-  LDX #$2E
-  STX PPUDATA
-
-  LDA PPUSTATUS
-  LDA #$21
-  STA PPUADDR
-  LDA #$F0
-  STA PPUADDR
-  LDX #$2E
-  STX PPUDATA
-
-  LDA PPUSTATUS
-  LDA #$22
-  STA PPUADDR
-  LDA #$26
-  STA PPUADDR
-  LDX #$2E
-  STX PPUDATA
-
-  LDA PPUSTATUS
-  LDA #$22
-  STA PPUADDR
-  LDA #$E4
-  STA PPUADDR
-  LDX #$2E
-  STX PPUDATA
-
-  LDA PPUSTATUS
-  LDA #$22
-  STA PPUADDR
-  LDA #$CE
-  STA PPUADDR
-  LDX #$2E
-  STX PPUDATA
-
-  LDA PPUSTATUS
-  LDA #$23
-  STA PPUADDR
-  LDA #$36
-  STA PPUADDR
-  LDX #$2E
-  STX PPUDATA
-
-  ; finally, attribute table
-	LDA PPUSTATUS
-	LDA #$23
-	STA PPUADDR
-	LDA #$D4
-	STA PPUADDR
-	LDA #%01110000
-	STA PPUDATA
 
 vblankwait: ; wait for another vblank before continuing
   BIT PPUSTATUS 
@@ -395,6 +198,8 @@ player_x: .res 1
 player_y: .res 1
 player_dir: .res 1
 .exportzp player_x, player_y
+pointerLo: .res 1 ; pointer variables are declared in RAM
+pointerHi: .res 1 ; low byte first, high byte immediately after
 
 .segment "RODATA"
 palettes:
@@ -413,6 +218,9 @@ sprite:
   .byte $70, $06, $00, $88
   .byte $78, $07, $00, $80
   .byte $78, $08, $00, $88
+
+test_nametable: 
+  .incbin "background.nam"
 
 .segment "VECTORS"
 .addr nmi_handler, reset_handler, irq_handler
