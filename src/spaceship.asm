@@ -6,6 +6,8 @@
   RTI
 .endproc
 
+.import read_controller
+
 .proc nmi_handler
   LDA #$00
   STA OAMADDR
@@ -15,10 +17,27 @@
   ;Update tiles *after* DMA transfer
   JSR update_player
   JSR draw_player
+  JSR read_controller
 
+
+  LDA scroll
+  CMP #$00
+  BNE set_scroll_positions
+
+  LDA ppucrtl_settings
+  EOR #%00000010
+  STA ppucrtl_settings
+  STA PPUCTRL
+  LDA #240
+  STA scroll
+
+set_scroll_positions:
   LDA #$00
-  STA $2005
-  STA $2005
+  STA PPUSCROLL
+  DEC scroll
+  LDA scroll
+  STA PPUSCROLL
+
   RTI
 .endproc
 
@@ -104,35 +123,31 @@
   TYA
   PHA
 
-  LDA player_x
-  CMP #$e0
-  BCC not_at_right_edge
-  ; if BCC is not taken, we are greater than $e0
-  LDA #$00
-  STA player_dir    ; start moving left
-  JMP direction_set ; we already chose a direction,
-                    ; so we can skip the left side check
-not_at_right_edge:
-  LDA player_x
-  CMP #$10
-  BCS direction_set
-  ; if BCS not taken, we are less than $10
-  LDA #$01
-  STA player_dir ; start moving right
-direction_set:
-  ; now, actually update player_x
-  LDA player_dir
-  CMP #$01
-  BEQ move_right
-  ; if player_dir minus $01 is not zero,
-  ; that means player_dir was $00 and
-  ; we need to move left
+  LDA pad1
+  AND #BTN_LEFT
+  BEQ check_right
   DEC player_x
-  JMP exit_subroutine
-move_right:
+  DEC player_x
+check_right:
+  LDA pad1
+  AND #BTN_RIGHT
+  BEQ check_up
   INC player_x
-exit_subroutine:
-  ; all done, clean up an return
+  INC player_x
+check_up:
+  LDA pad1
+  AND #BTN_UP
+  BEQ check_down
+  DEC player_y
+  DEC player_y
+
+check_down:
+  LDA pad1
+  AND #BTN_DOWN
+  BEQ done_checking
+  INC player_y
+  INC player_y
+done_checking:
   PLA
   TAY
   PLA
@@ -144,6 +159,9 @@ exit_subroutine:
 
 .export main
 .proc main
+
+  LDA #239
+  STA scroll
 
   LDX PPUSTATUS
   LDX #$3f
@@ -188,6 +206,39 @@ insideloop:
   CPX #$04
   BNE outsideloop
 
+load_background2:
+  LDX PPUSTATUS
+  LDX #$28
+  STX PPUADDR
+  LDX #$00
+  STX PPUADDR
+
+  LDA #<background2
+  STA pointerLo
+  LDA #>background2
+  STA pointerHi
+
+  LDX #$00
+  LDY #$00
+
+outsideloop2:
+
+insideloop2:
+  LDA (pointerLo), y
+  STA PPUDATA
+  INY
+  BNE insideloop2
+
+  INC pointerHi
+
+  INX
+  CPX #$04
+  BNE outsideloop2
+
+  LDA #%10010000
+  STA ppucrtl_settings
+  STA PPUCTRL
+
 vblankwait: ; wait for another vblank before continuing
   BIT PPUSTATUS 
   BPL vblankwait
@@ -203,10 +254,13 @@ forever:
 .segment "ZEROPAGE"
 player_x: .res 1
 player_y: .res 1
-player_dir: .res 1
-.exportzp player_x, player_y
 pointerLo: .res 1
 pointerHi: .res 1
+scroll: .res 1
+ppucrtl_settings: .res 1
+pad1: .res 1
+.exportzp player_x, player_y
+.exportzp pad1
 
 .segment "RODATA"
 palettes: .incbin "background.pal"
@@ -218,6 +272,7 @@ sprite:
   .byte $78, $08, $00, $88
 
 background: .incbin "background.nam"
+background2: .incbin "background2.nam"
 
 .segment "VECTORS"
 .addr nmi_handler, reset_handler, irq_handler
